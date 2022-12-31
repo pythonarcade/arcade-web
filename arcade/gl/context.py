@@ -1,19 +1,69 @@
-from typing import Optional, Tuple
+from typing import Optional, Sequence, Set, Tuple, Union
 
-from arcade.gl import constants
+from arcade.gl import DefaultFrameBuffer, Framebuffer, constants
 
+from .buffer import Buffer
 from .program import Program
+from .types import BufferDescription
+from .vertex_array import Geometry
 
 
 class Context:
+
+    active: Optional["Context"] = None
+
     def __init__(self, canvas):
         self.gl = canvas.getContext("webgl2")
         self._limits = Limits(self)
+        Context.activate(self)
         self.default_texture_unit = self._limits.MAX_TEXTURE_IMAGE_UNITS - 1
 
         self._screen = DefaultFrameBuffer(self)
         self.active_program: Optional[Program] = None
         self.active_framebuffer: Framebuffer = self._screen
+
+        self.gl.enable(constants.SCISSOR_TEST)
+
+        self._blend_func: Union[Tuple[int, int], Tuple[int, int, int, int]] = (
+            constants.SRC_ALPHA,
+            constants.ONE_MINUS_SRC_ALPHA,
+        )
+        self._point_size = 1.0
+        self._flags: Set[int] = set()
+
+    @property
+    def screen(self) -> Framebuffer:
+        return self._screen
+
+    @property
+    def fbo(self) -> Framebuffer:
+        return self.active_framebuffer
+
+    @classmethod
+    def activate(cls, ctx: "Context"):
+        cls.active = ctx
+
+    def enable(self, *flags):
+        self._flags.update(flags)
+
+        for flag in flags:
+            self.gl.enable(flag)
+
+    def disable(self, *flags):
+        self._flags -= set(flags)
+        for flag in flags:
+            self.gl.disable(flag)
+
+    def is_enabled(self, flag) -> bool:
+        return flag in self._flags
+
+    @property
+    def viewport(self) -> Tuple[int, int, int, int]:
+        return self.active_framebuffer.viewport
+
+    @viewport.setter
+    def viewport(self, value: Tuple[int, int, int, int]):
+        self.active_framebuffer.viewport = value
 
     def clear(self, color: Tuple[float, float, float, float]):
         # Temporary
@@ -25,7 +75,24 @@ class Context:
         self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT)
 
     def program(self, *, vertex_shader: str, fragment_shader: str) -> Program:
-        return Program.create(self, vertex_shader, fragment_shader)
+        return Program(
+            self, vertex_shader=vertex_shader, fragment_shader=fragment_shader
+        )
+
+    def geometry(
+        self,
+        content: Optional[Sequence[BufferDescription]] = None,
+        index_buffer: Optional[Buffer] = None,
+        mode: Optional[int] = None,
+        index_element_size: int = 4,
+    ):
+        return Geometry(
+            self,
+            content,
+            index_buffer=index_buffer,
+            mode=mode,
+            index_element_size=index_element_size,
+        )
 
 
 class Limits:
@@ -108,4 +175,5 @@ class Limits:
         self.POINT_SIZE_RANGE = self.get_param(constants.ALIASED_POINT_SIZE_RANGE)
 
     def get_param(self, enum: int):
+        return self._ctx.gl.getParameter(enum)
         return self._ctx.gl.getParameter(enum)

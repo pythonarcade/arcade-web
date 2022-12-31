@@ -9,6 +9,7 @@ from arcade.gl import Context
 
 _window: Window = None
 
+
 def get_window() -> Window:
     return _window
 
@@ -16,6 +17,7 @@ def get_window() -> Window:
 def set_window(window: Window) -> None:
     global _window
     _window = window
+
 
 class Window:
     def __init__(self, title: str, width: int, height: int):
@@ -29,7 +31,7 @@ class Window:
         self._canvas.height = height
         js.document.body.appendChild(self._canvas)
 
-        self.context = Context(self._canvas)
+        self.ctx = Context(self._canvas)
 
         self.run_proxy = create_proxy(self.run)
         self._then = 0
@@ -43,7 +45,7 @@ class Window:
         pass
 
     def clear(self, color: Tuple[float, float, float, float] = (0.0, 0.0, 0.0, 1.0)):
-        self.context.clear(color)
+        self.ctx.clear(color)
 
     def run(self, now):
         now = now * 0.001
@@ -55,7 +57,6 @@ class Window:
 
         js.requestAnimationFrame(self.run_proxy)
 
+
 def run():
     js.requestAnimationFrame(get_window().run_proxy)
-
-
