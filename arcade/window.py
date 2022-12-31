@@ -38,6 +38,10 @@ class Window:
 
         set_window(self)
 
+    @property
+    def aspect_ratio(self):
+        return self.width / self.height
+
     def on_update(self, delta_time):
         pass
 

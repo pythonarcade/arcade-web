@@ -103,7 +103,7 @@ class AttribFormat:
         self.components = components
         self.bytes_per_component = (bytes_per_component,)
         self.offset = offset
-        self.lcoation = location
+        self.location = location
 
     @property
     def bytes_total(self) -> int:

@@ -1,8 +1,10 @@
 from typing import Optional, Sequence, Set, Tuple, Union
 
-from arcade.gl import DefaultFrameBuffer, Framebuffer, constants
+from arcade.arcade_types import BufferProtocol
+from arcade.gl import constants
 
 from .buffer import Buffer
+from .framebuffer import DefaultFrameBuffer, Framebuffer
 from .program import Program
 from .types import BufferDescription
 from .vertex_array import Geometry
@@ -30,6 +32,32 @@ class Context:
         )
         self._point_size = 1.0
         self._flags: Set[int] = set()
+
+        self._uniform_setters = None
+        self._build_uniform_setters()
+
+    def _build_uniform_setters(self):
+        self._uniform_setters = {
+            # Integers
+            constants.INT: (int, self.gl.uniform1iv, 1, 1),
+            constants.INT_VEC2: (int, self.gl.uniform2iv, 2, 1),
+            constants.INT_VEC3: (int, self.gl.uniform3iv, 3, 1),
+            constants.INT_VEC4: (int, self.gl.uniform4iv, 4, 1),
+            # Bools
+            constants.BOOL: (bool, self.gl.uniform1iv, 1, 1),
+            constants.BOOL_VEC2: (bool, self.gl.uniform2iv, 2, 1),
+            constants.BOOL_VEC3: (bool, self.gl.uniform3iv, 3, 1),
+            constants.BOOL_VEC4: (bool, self.gl.uniform4iv, 4, 1),
+            # Floats
+            constants.FLOAT: (float, self.gl.uniform1fv, 1, 1),
+            constants.FLOAT_VEC2: (float, self.gl.uniform2fv, 2, 1),
+            constants.FLOAT_VEC3: (float, self.gl.uniform3fv, 3, 1),
+            constants.FLOAT_VEC4: (float, self.gl.uniform4fv, 4, 1),
+            # Matrices
+            constants.FLOAT_MAT2: (float, self.gl.uniformMatrix2fv, 4, 1),
+            constants.FLOAT_MAT3: (float, self.gl.uniformMatrix3fv, 9, 1),
+            constants.FLOAT_MAT4: (float, self.gl.uniformMatrix4fv, 16, 1),
+        }
 
     @property
     def screen(self) -> Framebuffer:
@@ -78,6 +106,9 @@ class Context:
         return Program(
             self, vertex_shader=vertex_shader, fragment_shader=fragment_shader
         )
+
+    def buffer(self, *, data: Optional[BufferProtocol] = None, usage: str = "static"):
+        return Buffer(self, data, usage=usage)
 
     def geometry(
         self,

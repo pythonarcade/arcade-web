@@ -1,6 +1,21 @@
-from typing import Optional, Sequence
+from typing import TYPE_CHECKING, Optional, Sequence
 
-from arcade.gl import Buffer, BufferDescription, Context, Program, constants
+from arcade.gl import constants
+
+from .buffer import Buffer
+from .program import Program
+from .types import BufferDescription
+
+if TYPE_CHECKING:
+    from arcade.gl import Context
+
+index_types = [
+    None,
+    constants.UNSIGNED_BYTE,
+    constants.UNSIGNED_SHORT,
+    None,
+    constants.UNSIGNED_INT,
+]
 
 
 class VertexArray:
@@ -16,6 +31,10 @@ class VertexArray:
         self._program = program
         self._content = content
         self._glo = None
+        self._num_vertices = -1
+        self._ibo = index_buffer
+        self._index_element_size = index_element_size
+        self._index_element_type = index_types[index_element_size]
 
         self._build(program, content, index_buffer)
 
@@ -67,6 +86,20 @@ class VertexArray:
                 attr_descr.offset,
             )
 
+    def render(self, mode: int, first: int = 0, vertices: int = 0, instances: int = 1):
+        self._ctx.gl.bindVertexArray(self._glo)
+        if self._ibo is not None:
+            self._ctx.bindBuffer(constants.ELEMENT_ARRAY_BUFFER, self._ibo.glo)
+            self._ctx.drawElementsInstanced(
+                mode,
+                vertices,
+                self._index_element_type,
+                first * self._index_element_size,
+                instances,
+            )
+        else:
+            self._ctx.gl.drawArraysInstanced(mode, first, vertices, instances)
+
 
 class Geometry:
     def __init__(
@@ -97,6 +130,26 @@ class Geometry:
                         continue
                     self._num_vertices = min(self._num_vertices, descr.num_vertices)
 
+    def render(
+        self,
+        program: Program,
+        *,
+        mode: Optional[int] = None,
+        first: int = 0,
+        vertices: Optional[int] = None,
+        instances: int = 1,
+    ) -> None:
+        program.use()
+        vao = self.instance(program)
+        mode = self._mode if mode is None else mode
+
+        vao.render(
+            mode=mode,
+            first=first,
+            vertices=vertices or self._num_vertices,
+            instances=instances,
+        )
+
     def instance(self, program: Program) -> VertexArray:
         return self._generate_vao(program)
 
@@ -108,4 +161,5 @@ class Geometry:
             index_buffer=self._index_buffer,
             index_element_size=self._index_element_size,
         )
+        return vao
         return vao
