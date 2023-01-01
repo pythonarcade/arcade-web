@@ -32,6 +32,7 @@ class Window:
         js.document.body.appendChild(self._canvas)
 
         self.ctx = Context(self._canvas)
+        self.set_viewport(0, self.width, 0, self.height)
 
         self.run_proxy = create_proxy(self.run)
         self._then = 0
@@ -50,6 +51,11 @@ class Window:
 
     def clear(self, color: Tuple[float, float, float, float] = (0.0, 0.0, 0.0, 1.0)):
         self.ctx.clear(color)
+
+    def set_viewport(self, left, right, bottom, top):
+        fbo = self.ctx.fbo
+        if fbo.is_default:
+            fbo.viewport = 0, 0, self.width, self.height
 
     def run(self, now):
         now = now * 0.001

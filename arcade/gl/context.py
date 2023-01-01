@@ -16,6 +16,7 @@ class Context:
 
     def __init__(self, canvas):
         self.gl = canvas.getContext("webgl2")
+        self._anisotropy_ext = self.gl.getExtension("EXT_texture_filter_anisotropic")
         self._limits = Limits(self)
         Context.activate(self)
         self.default_texture_unit = self._limits.MAX_TEXTURE_IMAGE_UNITS - 1
@@ -59,6 +60,10 @@ class Context:
             constants.FLOAT_MAT4: (float, self.gl.uniformMatrix4fv, 16, 1),
         }
 
+    def clear(self, color: Tuple[float, float, float, float]):
+        self.gl.clearColor(*color)
+        self.gl.clear(self.gl.COLOR_BUFFER_BIT)
+
     @property
     def screen(self) -> Framebuffer:
         return self._screen
@@ -77,6 +82,24 @@ class Context:
         for flag in flags:
             self.gl.enable(flag)
 
+    def enable_only(self, *args):
+        self._flags = set(args)
+
+        if constants.BLEND in self._flags:
+            self.gl.enable(constants.BLEND)
+        else:
+            self.gl.disable(constants.BLEND)
+
+        if constants.DEPTH_TEST in self._flags:
+            self.gl.enable(constants.DEPTH_TEST)
+        else:
+            self.gl.disable(constants.DEPTH_TEST)
+
+        if constants.CULL_FACE in self._flags:
+            self.gl.enable(constants.CULL_FACE)
+        else:
+            self.gl.disable(constants.CULL_FACE)
+
     def disable(self, *flags):
         self._flags -= set(flags)
         for flag in flags:
@@ -92,15 +115,6 @@ class Context:
     @viewport.setter
     def viewport(self, value: Tuple[int, int, int, int]):
         self.active_framebuffer.viewport = value
-
-    def clear(self, color: Tuple[float, float, float, float]):
-        # Temporary
-        self.gl.clearDepth(1.0)
-        self.gl.enable(self.gl.DEPTH_TEST)
-        self.gl.depthFunc(self.gl.LEQUAL)
-
-        self.gl.clearColor(*color)
-        self.gl.clear(self.gl.COLOR_BUFFER_BIT | self.gl.DEPTH_BUFFER_BIT)
 
     def program(self, *, vertex_shader: str, fragment_shader: str) -> Program:
         return Program(

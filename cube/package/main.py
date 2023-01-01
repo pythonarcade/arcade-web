@@ -1,11 +1,8 @@
 """
 Simple 3D Example
-
 If Python and Arcade are installed, this example can be run from the command line with:
 python -m arcade.examples.gl.3d_cube
 """
-import js
-
 import arcade
 from arcade.gl import geometry
 from arcade.math import Mat4
@@ -20,16 +17,12 @@ class MyGame(arcade.Window):
         self.program = self.ctx.program(
             vertex_shader="""#version 300 es
             precision highp float;
-
             uniform mat4 projection;
             uniform mat4 modelview;
-
             in vec3 in_position;
             in vec3 in_normal;
-
             out vec3 normal;
             out vec3 pos;
-
             void main() {
                 vec4 p = modelview * vec4(in_position, 1.0);
                 gl_Position = projection * p;
@@ -40,12 +33,9 @@ class MyGame(arcade.Window):
             """,
             fragment_shader="""#version 300 es
             precision highp float;
-
             out vec4 fragColor;
-
             in vec3 normal;
             in vec3 pos;
-
             void main()
             {
                 float l = dot(normalize(-pos), normalize(normal));
@@ -53,19 +43,12 @@ class MyGame(arcade.Window):
             }
             """,
         )
-
-        self.modelview_location = self.ctx.gl.getUniformLocation(
-            self.program.glo, "modelview"
-        )
-        self.projection_location = self.ctx.gl.getUniformLocation(
-            self.program.glo, "modelview"
-        )
         self.on_resize(self.width, self.height)
         self.time = 0
 
     def on_draw(self):
         self.clear()
-        self.ctx.enable(self.ctx.gl.CULL_FACE, self.ctx.gl.DEPTH_TEST)
+        self.ctx.enable_only(self.ctx.gl.CULL_FACE, self.ctx.gl.DEPTH_TEST)
 
         translate = Mat4.from_translation((0, 0, -1.75))
         rx = Mat4.from_rotation(self.time, (1, 0, 0))

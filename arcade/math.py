@@ -41,9 +41,6 @@ supported. Helper methods are included for rotating, scaling, and
 transforming. The :py:class:`~pyglet.matrix.Mat4` includes class methods
 for creating orthographic and perspective projection matrixes.
 
-Matrices behave just like they do in GLSL: they are specified in column-major
-order and multiply on the left of vectors, which are treated as columns.
-
 :note: For performance, Matrixes subclass the `tuple` type. They
     are therefore immutable - all operations return a new object;
     the object is not updated in-place.
@@ -79,6 +76,9 @@ class Vec2:
         yield self.x
         yield self.y
 
+    def __len__(self) -> int:
+        return 2
+
     @_typing.overload
     def __getitem__(self, item: int) -> float:
         ...
@@ -89,16 +89,6 @@ class Vec2:
 
     def __getitem__(self, item):
         return (self.x, self.y)[item]
-
-    def __setitem__(self, key, value):
-        if type(key) is slice:
-            for i, attr in enumerate(["x", "y"][key]):
-                setattr(self, attr, value[i])
-        else:
-            setattr(self, ["x", "y"][key], value)
-
-    def __len__(self) -> int:
-        return 2
 
     def __add__(self, other: Vec2) -> Vec2:
         return Vec2(self.x + other.x, self.y + other.y)
@@ -322,13 +312,6 @@ class Vec3:
 
     def __getitem__(self, item):
         return (self.x, self.y, self.z)[item]
-
-    def __setitem__(self, key, value):
-        if type(key) is slice:
-            for i, attr in enumerate(["x", "y", "z"][key]):
-                setattr(self, attr, value[i])
-        else:
-            setattr(self, ["x", "y", "z"][key], value)
 
     def __len__(self) -> int:
         return 3
@@ -555,13 +538,6 @@ class Vec4:
     def __getitem__(self, item):
         return (self.x, self.y, self.z, self.w)[item]
 
-    def __setitem__(self, key, value):
-        if type(key) is slice:
-            for i, attr in enumerate(["x", "y", "z", "w"][key]):
-                setattr(self, attr, value[i])
-        else:
-            setattr(self, ["x", "y", "z", "w"][key], value)
-
     def __len__(self) -> int:
         return 4
 
@@ -754,45 +730,50 @@ class Mat3(tuple):
 
     def __matmul__(self, other):
         if isinstance(other, Vec3):
-            # Rows:
-            r0 = self[0::3]
-            r1 = self[1::3]
-            r2 = self[2::3]
+            # Columns:
+            c0 = self[0::3]
+            c1 = self[1::3]
+            c2 = self[2::3]
             return Vec3(
-                sum(map(_mul, r0, other)),
-                sum(map(_mul, r1, other)),
-                sum(map(_mul, r2, other)),
+                sum(map(_mul, c0, other)),
+                sum(map(_mul, c1, other)),
+                sum(map(_mul, c2, other)),
             )
 
         if not isinstance(other, Mat3):
             raise TypeError("Can only multiply with Mat3 or Vec3 types")
 
         # Rows:
-        r0 = self[0::3]
-        r1 = self[1::3]
-        r2 = self[2::3]
+        r0 = self[0:3]
+        r1 = self[3:6]
+        r2 = self[6:9]
         # Columns:
-        c0 = other[0:3]
-        c1 = other[3:6]
-        c2 = other[6:9]
+        c0 = other[0::3]
+        c1 = other[1::3]
+        c2 = other[2::3]
 
-        # Multiply and sum rows * columns:
+        # Multiply and sum rows * colums:
         return Mat3(
             (
-                sum(map(_mul, c0, r0)),
-                sum(map(_mul, c0, r1)),
-                sum(map(_mul, c0, r2)),
-                sum(map(_mul, c1, r0)),
-                sum(map(_mul, c1, r1)),
-                sum(map(_mul, c1, r2)),
-                sum(map(_mul, c2, r0)),
-                sum(map(_mul, c2, r1)),
-                sum(map(_mul, c2, r2)),
+                sum(map(_mul, r0, c0)),
+                sum(map(_mul, r0, c1)),
+                sum(map(_mul, r0, c2)),
+                sum(map(_mul, r1, c0)),
+                sum(map(_mul, r1, c1)),
+                sum(map(_mul, r1, c2)),
+                sum(map(_mul, r2, c0)),
+                sum(map(_mul, r2, c1)),
+                sum(map(_mul, r2, c2)),
             )
         )
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}{self[0:3]}\n    {self[3:6]}\n    {self[6:9]}"
+        array = [str(num)[:12] for num in self]
+        return (
+            f"| {array[0]:>12s} | {array[3]:>12s} | {array[6]:>12s} |\n"
+            f"| {array[1]:>12s} | {array[4]:>12s} | {array[7]:>12s} |\n"
+            f"| {array[2]:>12s} | {array[5]:>12s} | {array[8]:>12s} |\n"
+        )
 
 
 class Mat4(tuple):
@@ -852,11 +833,7 @@ class Mat4(tuple):
         z_near: float,
         z_far: float,
     ) -> Mat4T:
-        """Create a Mat4 orthographic projection matrix for use with OpenGL.
-
-        This matrix doesn't actually perform the projection; it transforms the
-        space so that OpenGL's vertex processing performs it.
-        """
+        """Create a Mat4 orthographic projection matrix."""
         width = right - left
         height = top - bottom
         depth = z_far - z_near
@@ -878,10 +855,7 @@ class Mat4(tuple):
         cls: type[Mat4T], aspect: float, z_near: float, z_far: float, fov: float = 60
     ) -> Mat4T:
         """
-        Create a Mat4 perspective projection matrix for use with OpenGL.
-
-        This matrix doesn't actually perform the projection; it transforms the
-        space so that OpenGL's vertex processing performs it.
+        Create a Mat4 perspective projection matrix.
 
         :Parameters:
             `aspect` : The aspect ratio as a `float`
@@ -971,6 +945,33 @@ class Mat4(tuple):
                 vector[0],
                 vector[1],
                 vector[2],
+                1.0,
+            )
+        )
+
+    @classmethod
+    def look_at_direction(cls: type[Mat4T], direction: Vec3, up: Vec3) -> Mat4T:
+        vec_z = direction.normalize()
+        vec_x = direction.cross(up).normalize()
+        vec_y = direction.cross(vec_z).normalize()
+
+        return cls(
+            (
+                vec_x.x,
+                vec_y.x,
+                vec_z.x,
+                0.0,
+                vec_x.y,
+                vec_y.y,
+                vec_z.y,
+                0.0,
+                vec_x.z,
+                vec_z.z,
+                vec_z.z,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
                 1.0,
             )
         )
@@ -1145,50 +1146,50 @@ class Mat4(tuple):
 
     def __matmul__(self, other):
         if isinstance(other, Vec4):
-            # Rows:
-            r0 = self[0::4]
-            r1 = self[1::4]
-            r2 = self[2::4]
-            r3 = self[3::4]
+            # Columns:
+            c0 = self[0::4]
+            c1 = self[1::4]
+            c2 = self[2::4]
+            c3 = self[3::4]
             return Vec4(
-                sum(map(_mul, r0, other)),
-                sum(map(_mul, r1, other)),
-                sum(map(_mul, r2, other)),
-                sum(map(_mul, r3, other)),
+                sum(map(_mul, c0, other)),
+                sum(map(_mul, c1, other)),
+                sum(map(_mul, c2, other)),
+                sum(map(_mul, c3, other)),
             )
 
         if not isinstance(other, Mat4):
             raise TypeError("Can only multiply with Mat4 or Vec4 types")
         # Rows:
-        r0 = self[0::4]
-        r1 = self[1::4]
-        r2 = self[2::4]
-        r3 = self[3::4]
+        r0 = self[0:4]
+        r1 = self[4:8]
+        r2 = self[8:12]
+        r3 = self[12:16]
         # Columns:
-        c0 = other[0:4]
-        c1 = other[4:8]
-        c2 = other[8:12]
-        c3 = other[12:16]
+        c0 = other[0::4]
+        c1 = other[1::4]
+        c2 = other[2::4]
+        c3 = other[3::4]
 
         # Multiply and sum rows * columns:
         return Mat4(
             (
-                sum(map(_mul, c0, r0)),
-                sum(map(_mul, c0, r1)),
-                sum(map(_mul, c0, r2)),
-                sum(map(_mul, c0, r3)),
-                sum(map(_mul, c1, r0)),
-                sum(map(_mul, c1, r1)),
-                sum(map(_mul, c1, r2)),
-                sum(map(_mul, c1, r3)),
-                sum(map(_mul, c2, r0)),
-                sum(map(_mul, c2, r1)),
-                sum(map(_mul, c2, r2)),
-                sum(map(_mul, c2, r3)),
-                sum(map(_mul, c3, r0)),
-                sum(map(_mul, c3, r1)),
-                sum(map(_mul, c3, r2)),
-                sum(map(_mul, c3, r3)),
+                sum(map(_mul, r0, c0)),
+                sum(map(_mul, r0, c1)),
+                sum(map(_mul, r0, c2)),
+                sum(map(_mul, r0, c3)),
+                sum(map(_mul, r1, c0)),
+                sum(map(_mul, r1, c1)),
+                sum(map(_mul, r1, c2)),
+                sum(map(_mul, r1, c3)),
+                sum(map(_mul, r2, c0)),
+                sum(map(_mul, r2, c1)),
+                sum(map(_mul, r2, c2)),
+                sum(map(_mul, r2, c3)),
+                sum(map(_mul, r3, c0)),
+                sum(map(_mul, r3, c1)),
+                sum(map(_mul, r3, c2)),
+                sum(map(_mul, r3, c3)),
             )
         )
 
@@ -1197,4 +1198,10 @@ class Mat4(tuple):
     #     return super().__getitem__(row)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}{self[0:4]}\n    {self[4:8]}\n    {self[8:12]}\n    {self[12:16]}"
+        array = [str(num)[:12] for num in self]
+        return (
+            f"| {array[0]:>12s} | {array[4]:>12s} | {array[8] :>12s} | {array[12]:>12s} |\n"
+            f"| {array[1]:>12s} | {array[5]:>12s} | {array[9] :>12s} | {array[13]:>12s} |\n"
+            f"| {array[2]:>12s} | {array[6]:>12s} | {array[10]:>12s} | {array[14]:>12s} |\n"
+            f"| {array[3]:>12s} | {array[7]:>12s} | {array[11]:>12s} | {array[15]:>12s} |\n"
+        )

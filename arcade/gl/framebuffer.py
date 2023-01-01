@@ -41,12 +41,12 @@ class Framebuffer:
                 0,
             )
 
-        if self.depth_attachment:
+        if self._depth_attachment:
             self._ctx.gl.framebufferTexture2D(
                 constants.FRAMEBUFFER,
                 constants.DEPTH_ATTACHMENT,
-                self.depth_attachment._target,
-                self.depth_attachment.glo,
+                self._depth_attachment._target,
+                self._depth_attachment.glo,
             )
 
         self._check_completeness()
@@ -157,7 +157,7 @@ class Framebuffer:
                         color[0] / 255, color[1] / 255, color[2] / 255, color[3] / 255
                     )
 
-            if self.depth_attachment:
+            if self._depth_attachment:
                 self._ctx.gl.clear(
                     constants.COLOR_BUFFER_BIT | constants.DEPTH_BUFFER_BIT
                 )
@@ -196,6 +196,7 @@ class DefaultFrameBuffer(Framebuffer):
         self._depth_mask = True
 
         self._glo = self._ctx.gl.getParameter(constants.DRAW_FRAMEBUFFER_BINDING)
+        print(self._glo)
 
         self._draw_buffers = None
         x, y, width, height = self._ctx.gl.getParameter(constants.SCISSOR_BOX)

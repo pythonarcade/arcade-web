@@ -28,7 +28,6 @@ class Uniform:
     @property
     def components(self) -> int:
         return self._components
-        return self._components
 
     def _setup_getters_and_setters(self):
         gl_type, gl_setter, length, count = self._ctx._uniform_setters[self._data_type]
@@ -58,5 +57,4 @@ class Uniform:
                 ctx.gl.useProgram(program)
                 gl_setter(location, value)
 
-        return setter_func
         return setter_func

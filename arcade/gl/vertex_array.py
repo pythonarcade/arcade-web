@@ -162,4 +162,3 @@ class Geometry:
             index_element_size=self._index_element_size,
         )
         return vao
-        return vao
