@@ -38,8 +38,7 @@ class MyGame(arcade.Window):
             in vec3 pos;
             void main()
             {
-                float l = dot(normalize(-pos), normalize(normal));
-                fragColor = vec4(1.0) * (0.25 + abs(l) * 0.75);
+                fragColor = vec4(abs(pos) * normal, 1.0);
             }
             """,
         )
