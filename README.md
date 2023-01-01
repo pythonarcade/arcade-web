@@ -8,8 +8,14 @@ For more information on Arcade and it's usage, please visit the main [Arcade](ht
 
 ## Current Status
 
-Currently arcade-web is in the very early stages of development, and is not ready for general consumption by users. As such, it is not available on pypi yet, you may download a zip of this repository and install it into a pyodide environment manually if you wish to test out the library. You can also checkout the [experiments](https://github.com/pythonarcade/arcade-web-experiments) repository for some examples of how to include and use arcade-web in the meantime.
+Currently arcade-web is in the very early stages of development, and is not ready for general consumption by users. As such, it is not available on pypi yet, you may download a zip of this repository and install it into a pyodide environment manually if you wish to test out the library.
 
 We do not currently have a solid timeline or roadmap of when a general release will be ready. In the meantime if you want to try out arcade-web, the experiments repo linked above is the best starting point to see how to use it in it's current form.
 
 The library is currently under very rapid development and it's core structure is still very fluid, so nothing represented in either this repo or the experiments repo at this time should be taken as an indicator of how the final general release will be.
+
+## Examples
+
+All current examples are in the `examples` folder within this repository.
+
+Running `examples/server.py` will give you a local HTTP server which you can access all of the examples from. You can access a specific example like so, if you want to see the `cube` example, you would navigate to http://localhost:8000/examples/cube. If you want to use a different port than 8000, you can pass the `-p` parameter to `server.py`.

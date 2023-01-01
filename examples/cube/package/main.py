@@ -9,8 +9,8 @@ from arcade.math import Mat4
 
 
 class MyGame(arcade.Window):
-    def __init__(self, title, width, height):
-        super().__init__(title, width, height)
+    def __init__(self, width, height, title):
+        super().__init__(width, height, title)
         # Use the standard cube
         self.cube = geometry.cube()
         # Simple color lighting program
@@ -69,5 +69,5 @@ class MyGame(arcade.Window):
 
 
 def run():
-    MyGame("3D Cube", 800, 600)
+    MyGame(800, 600, "3D Cube")
     arcade.run()

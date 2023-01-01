@@ -20,7 +20,7 @@ def set_window(window: Window) -> None:
 
 
 class Window:
-    def __init__(self, title: str, width: int, height: int):
+    def __init__(self, width: int, height: int, title: str):
         self.width = width
         self.height = height
 

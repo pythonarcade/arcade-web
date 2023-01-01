@@ -12,6 +12,54 @@ def _get_active_context() -> Context:
     return ctx
 
 
+def quad_2d(
+    size: Tuple[float, float] = (1.0, 1.0), pos: Tuple[float, float] = (0.0, 0.0)
+) -> Geometry:
+    """
+    Creates 2D quad Geometry using 2 triangle strip with texture coordinates.
+
+    :param tuple size: width and height
+    :param float pos: Center position x and y
+    :rtype: A :py:class:`~arcade.gl.geometry.Geometry` instance.
+    """
+    ctx = _get_active_context()
+    width, height = size
+    x_pos, y_pos = pos
+
+    data = array(
+        "f",
+        [
+            x_pos - width / 2.0,
+            y_pos + height / 2.0,
+            0.0,
+            1.0,
+            x_pos - width / 2.0,
+            y_pos - height / 2.0,
+            0.0,
+            0.0,
+            x_pos + width / 2.0,
+            y_pos + height / 2.0,
+            1.0,
+            1.0,
+            x_pos + width / 2.0,
+            y_pos - height / 2.0,
+            1.0,
+            0.0,
+        ],
+    )
+
+    return ctx.geometry(
+        [
+            BufferDescription(
+                ctx.buffer(data=data),
+                "2f 2f",
+                ["in_vert", "in_uv"],
+            )
+        ],
+        mode=ctx.gl.TRIANGLE_STRIP,
+    )
+
+
 def cube(
     size: Tuple[float, float, float] = (1.0, 1.0, 1.0),
     center: Tuple[float, float, float] = (0.0, 0.0, 0.0),
