@@ -121,6 +121,10 @@ class BufferDescription:
         "i1": (constants.BYTE, 1),
         "i2": (constants.SHORT, 2),
         "i4": (constants.INT, 4),
+        "x1": (None, 1),
+        "x2": (None, 2),
+        "x4": (None, 4),
+        "x8": (None, 8),
     }
 
     def __init__(
@@ -139,9 +143,28 @@ class BufferDescription:
         self.stride: int = -1
         self.num_vertices: int = -1
 
+        if not isinstance(buffer, Buffer):
+            raise ValueError("buffer parameter must be an arcade.gl.Buffer")
+
+        if not isinstance(self.attributes, list) and not isinstance(
+            self.attributes, tuple
+        ):
+            raise ValueError("Attributes must be a list or tuple")
+
+        if self.normalized > set(self.attributes):
+            raise ValueError("Normalized attribute not found in attributes.")
+
         formats_list = formats.split(" ")
+        non_padded_formats = [f for f in formats_list if "x" not in f]
+
+        if len(non_padded_formats) != len(self.attributes):
+            raise ValueError(
+                f"Different lengths of formats ({len(formats_list)}) and "
+                f"attributes ({len(self.attributes)})"
+            )
 
         def zip_attrs(formats, attributes):
+            """Join together formats and attribute names taking padding into account"""
             attr_index = 0
             for f in formats:
                 if "x" in f:
@@ -154,14 +177,22 @@ class BufferDescription:
         for attr_fmt, attr_name in zip_attrs(formats_list, self.attributes):
             try:
                 components_str, data_type_str, data_size_str = re.split(
-                    r"([fi])", attr_fmt
+                    r"([fiux])", attr_fmt
                 )
                 data_type = (
                     f"{data_type_str}{data_size_str}"
                     if data_size_str
                     else data_type_str
                 )
-                components = int(components_str) if components_str else 1
+                components = (
+                    int(components_str) if components_str else 1
+                )  # 1 component is default
+                data_size = (
+                    int(data_size_str) if data_size_str else 4
+                )  # 4 byte float and integer types are default
+                # Limit components to 4 for non-padded formats
+                if components > 4 and data_size is not None:
+                    raise ValueError("Number of components must be 1, 2, 3 or 4")
             except Exception as ex:
                 raise ValueError(
                     f"Could not parse attribute format: '{attr_fmt} : {ex}'"
@@ -176,6 +207,13 @@ class BufferDescription:
 
             self.stride += byte_size * components
 
+        if self.buffer.size % self.stride != 0:
+            raise ValueError(
+                f"Buffer size must align by {self.stride} bytes. "
+                f"{self.buffer} size={self.buffer.size}"
+            )
+
+        # Estimate number of vertices for this buffer
         self.num_vertices = self.buffer.size // self.stride
 
 

@@ -86,6 +86,9 @@ class VertexArray:
                 attr_descr.offset,
             )
 
+            if buff_descr.instanced:
+                gl.vertexAttribDivisor(prog_attr.location, 1)
+
     def render(self, mode: int, first: int = 0, vertices: int = 0, instances: int = 1):
         self._ctx.gl.bindVertexArray(self._glo)
         if self._ibo is not None:
