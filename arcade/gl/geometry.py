@@ -12,6 +12,10 @@ def _get_active_context() -> Context:
     return ctx
 
 
+def quad_2d_fs() -> Geometry:
+    return quad_2d(size=(2.0, 2.0))
+
+
 def quad_2d(
     size: Tuple[float, float] = (1.0, 1.0), pos: Tuple[float, float] = (0.0, 0.0)
 ) -> Geometry:

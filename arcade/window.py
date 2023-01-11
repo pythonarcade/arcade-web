@@ -5,7 +5,7 @@ from typing import Tuple
 import js
 from pyodide.ffi import create_proxy
 
-from arcade.gl import Context
+from arcade import ArcadeContext
 
 _window: Window = None
 
@@ -31,13 +31,17 @@ class Window:
         self._canvas.height = height
         js.document.body.appendChild(self._canvas)
 
-        self.ctx = Context(self._canvas)
+        self.ctx = ArcadeContext(self)
         self.set_viewport(0, self.width, 0, self.height)
 
         self.run_proxy = create_proxy(self.run)
         self._then = 0
 
         set_window(self)
+
+    @property
+    def canvas(self):
+        return self._canvas
 
     @property
     def aspect_ratio(self):
