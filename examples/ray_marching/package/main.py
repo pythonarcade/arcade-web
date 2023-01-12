@@ -1,12 +1,9 @@
 """
-Simple instancing example.
+Simple ray marcher.
 
-We draw a triangle N times using instancing.
-A position offset and color is passed in per instance.
-To make things a bit more interesting we also rotate the triangle.
-
-If Python and Arcade are installed, this example can be run from the command line with:
-python -m arcade.examples.gl.instancing
+To make this simpler to follow we've based it on the
+"Ray Marching for Dummies!" video from The Art of Code
+YouTube Channel: https://www.youtube.com/watch?v=PGtv-dBi2wE
 """
 from pathlib import Path
 

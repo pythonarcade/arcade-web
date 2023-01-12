@@ -1,8 +1,5 @@
 """
 Render some basic geometry with shaders.
-
-If Python and Arcade are installed, this example can be run from the command line with:
-python -m arcade.examples.gl.basic_renderer
 """
 
 import math
