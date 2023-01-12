@@ -58,3 +58,28 @@ class Uniform:
                 gl_setter(location, value)
 
         return setter_func
+
+
+class UniformBlock:
+    def __init__(self, ctx, glo, index: int, size: int, name: str):
+        self._ctx = ctx
+        self.glo = glo
+        self.index = index
+        self.size = size
+        self.name = name
+
+    @property
+    def binding(self):
+        return self._ctx.gl.getActiveUniformBlockParameter(
+            self.glo, self.index, constants.UNIFORM_BLOCK_BINDING
+        )
+
+    @binding.setter
+    def binding(self, binding: int):
+        self._ctx.gl.uniformBlockBinding(self.glo, self.index, binding)
+
+    def getter(self):
+        return self
+
+    def setter(self, value: int):
+        self.binding = value

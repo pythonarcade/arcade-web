@@ -8,6 +8,7 @@ from arcade.gl import constants
 if TYPE_CHECKING:
     from arcade.gl import Context
 
+
 class Buffer:
 
     _usages = {
@@ -21,7 +22,7 @@ class Buffer:
         ctx: "Context",
         data: BufferProtocol,
         buffer_type: int = constants.ARRAY_BUFFER,
-        usage: str = "static"
+        usage: str = "static",
     ):
         self._ctx = ctx
         gl = self._ctx.gl
@@ -54,11 +55,7 @@ class Buffer:
         self._ctx.gl.bufferSubData(self._buffer_type, offset, js_array_buffer)
 
     def copy_from_buffer(
-        self,
-        source: "Buffer",
-        size: int = -1,
-        offset: int = 0,
-        source_offset: int = 0
+        self, source: "Buffer", size: int = -1, offset: int = 0, source_offset: int = 0
     ) -> None:
         if size == -1:
             size = source.size
@@ -76,7 +73,13 @@ class Buffer:
             constants.COPY_WRITE_BUFFER,
             source_offset,
             offset,
-            size
+            size,
         )
 
+    def bind_to_uniform_block(self, binding: int = 0, offset: int = 0, size: int = 0):
+        if size < 0:
+            size = self.size
 
+        self._ctx.gl.bindBufferRange(
+            constants.UNIFORM_BUFFER, binding, self._glo, offset, size
+        )
