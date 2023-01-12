@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
+</head>
+
+<body>
+    <script type="text/javascript">
+        async function main() {
+            let pyodide = await loadPyodide();
+            const arcadeResponse = fetch("../../arcade.zip").then((x) => x.arrayBuffer());
+            const pkgResponse = fetch("package.zip").then((x) => x.arrayBuffer());
+            const arcadeData = await arcadeResponse;
+            const pkgData = await pkgResponse;
+            await pyodide.unpackArchive(arcadeData, "zip");
+            await pyodide.unpackArchive(pkgData, "zip");
+            pyodide.runPython(`
+                import package
+                package.run()
+            `);
+        }
+        main();
+    </script>
+</body>
+
+</html>
