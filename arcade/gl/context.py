@@ -14,6 +14,14 @@ class Context:
 
     active: Optional["Context"] = None
 
+    BLEND = constants.BLEND
+    DEPTH_TEST = constants.DEPTH_TEST
+    CULL_FACE = constants.CULL_FACE
+
+    BLEND_DEFAULT = constants.SRC_ALPHA, constants.ONE_MINUS_SRC_ALPHA
+    BLEND_ADDITIVE = constants.ONE, constants.ONE
+    BLEND_PREMULTIPLIED_ALPHA = constants.SRC_ALPHA, constants.ONE
+
     def __init__(self, canvas):
         self.gl = canvas.getContext("webgl2")
         self._anisotropy_ext = self.gl.getExtension("EXT_texture_filter_anisotropic")
@@ -63,6 +71,20 @@ class Context:
     def clear(self, color: Tuple[float, float, float, float]):
         self.gl.clearColor(*color)
         self.gl.clear(self.gl.COLOR_BUFFER_BIT)
+
+    @property
+    def blend_func(self) -> Union[Tuple[int, int], Tuple[int, int, int, int]]:
+        return self._blend_func
+
+    @blend_func.setter
+    def blend_func(self, value: Union[Tuple[int, int], Tuple[int, int, int, int]]):
+        self._blend_func = value
+        if len(value) == 2:
+            self.gl.blendFunc(*value)
+        elif len(value) == 4:
+            self.gl.blendFuncSeparate(*value)
+        else:
+            ValueError("blend_func takes a tuple of 2 or 4 values")
 
     @property
     def screen(self) -> Framebuffer:

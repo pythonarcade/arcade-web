@@ -8,6 +8,9 @@ class ArcadeContext(Context):
     def __init__(self, window):
         super().__init__(window.canvas)
 
+        self.enable(self.BLEND)
+        self.blend_func = self.BLEND_DEFAULT
+
     def load_program(
         self,
         *,
