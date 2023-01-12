@@ -40,17 +40,17 @@ class Context:
     def _build_uniform_setters(self):
         self._uniform_setters = {
             # Integers
-            constants.INT: (int, self.gl.uniform1iv, 1, 1),
+            constants.INT: (int, self.gl.uniform1i, 1, 1),
             constants.INT_VEC2: (int, self.gl.uniform2iv, 2, 1),
             constants.INT_VEC3: (int, self.gl.uniform3iv, 3, 1),
             constants.INT_VEC4: (int, self.gl.uniform4iv, 4, 1),
             # Bools
-            constants.BOOL: (bool, self.gl.uniform1iv, 1, 1),
+            constants.BOOL: (bool, self.gl.uniform1i, 1, 1),
             constants.BOOL_VEC2: (bool, self.gl.uniform2iv, 2, 1),
             constants.BOOL_VEC3: (bool, self.gl.uniform3iv, 3, 1),
             constants.BOOL_VEC4: (bool, self.gl.uniform4iv, 4, 1),
             # Floats
-            constants.FLOAT: (float, self.gl.uniform1fv, 1, 1),
+            constants.FLOAT: (float, self.gl.uniform1f, 1, 1),
             constants.FLOAT_VEC2: (float, self.gl.uniform2fv, 2, 1),
             constants.FLOAT_VEC3: (float, self.gl.uniform3fv, 3, 1),
             constants.FLOAT_VEC4: (float, self.gl.uniform4fv, 4, 1),
