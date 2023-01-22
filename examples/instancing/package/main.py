@@ -114,7 +114,7 @@ class MyGame(arcade.Window):
 
     def on_draw(self):
         self.clear()
-        self.program["time"] = [self.time]
+        self.program["time"] = self.time
         self.geometry.render(self.program, instances=self.instances)
 
     def on_update(self, dt):
