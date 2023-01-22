@@ -1,6 +1,10 @@
 from array import array
 from collections.abc import ByteString
-from typing import Union
+from typing import Tuple, Union
+
+RGB = Tuple[int, int, int]
+RGBA = Tuple[int, int, int, int]
+Color = Union[RGB, RGBA]
 
 # This is a temporary workaround for the lack of a way to type annotate
 # objects implementing the buffer protocol. Although there is a PEP to

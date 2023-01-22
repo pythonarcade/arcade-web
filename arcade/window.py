@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Tuple
+from typing import Optional, Tuple
 
 import js
 from pyodide.ffi import create_proxy
 
 from arcade import ArcadeContext
+from arcade.arcade_types import Color
 
 _window: Window = None
 
@@ -39,6 +40,8 @@ class Window:
 
         set_window(self)
 
+        self._background_color: Color = (0, 0, 0, 255)
+
     @property
     def canvas(self):
         return self._canvas
@@ -53,8 +56,25 @@ class Window:
     def on_draw(self):
         pass
 
-    def clear(self, color: Tuple[float, float, float, float] = (0.0, 0.0, 0.0, 1.0)):
-        self.ctx.clear(color)
+    def clear(
+        self,
+        color: Optional[Color] = None,
+        normalized: bool = False,
+        viewport: Optional[Tuple[int, int, int, int]] = None,
+    ):
+        color = color if color is not None else self.background_color
+        self.ctx.screen.clear(color, normalized=normalized, viewport=viewport)
+
+    @property
+    def background_color(self) -> Color:
+        return self._background_color
+
+    @background_color.setter
+    def background_color(self, value: Color):
+        self._background_color = value
+
+    def get_size(self) -> Tuple[int, int]:
+        return self.width, self.height
 
     def set_viewport(self, left, right, bottom, top):
         fbo = self.ctx.fbo
@@ -70,6 +90,9 @@ class Window:
         self.on_update(delta_time)
 
         js.requestAnimationFrame(self.run_proxy)
+
+    def use(self):
+        self.ctx.screen.use()
 
 
 def run():

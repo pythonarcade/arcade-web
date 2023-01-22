@@ -84,6 +84,7 @@ class Program:
 
         for index in range(active_uniforms):
             active_info = self._ctx.gl.getActiveUniform(self._glo, index)
+            print(active_info.type)
             u_location = self._ctx.gl.getUniformLocation(self._glo, active_info.name)
 
             self._uniforms[active_info.name] = Uniform(

@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Optional, Tuple
 
-from arcade import BufferProtocol
+from arcade.arcade_types import BufferProtocol
 from arcade.gl import constants
 
 from .types import pixel_formats
@@ -49,9 +49,17 @@ class Texture:
 
         self._texture_2d(data)
 
+    def use(self, unit: int = 0) -> None:
+        self._ctx.gl.activeTexture(constants.TEXTURE0 + unit)
+        self._ctx.gl.bindTexture(self._target, self._glo)
+
     @property
     def glo(self):
         return self._glo
+
+    @property
+    def size(self) -> Tuple[int, int]:
+        return self._width, self._height
 
     def _texture_2d(self, data):
         try:

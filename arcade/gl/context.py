@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Set, Tuple, Union
+from typing import List, Optional, Sequence, Set, Tuple, Union
 
 from arcade.arcade_types import BufferProtocol
 from arcade.gl import constants
@@ -6,6 +6,7 @@ from arcade.gl import constants
 from .buffer import Buffer
 from .framebuffer import DefaultFrameBuffer, Framebuffer
 from .program import Program
+from .texture import Texture
 from .types import BufferDescription
 from .vertex_array import Geometry
 
@@ -66,6 +67,18 @@ class Context:
             constants.FLOAT_MAT2: (float, self.gl.uniformMatrix2fv, 4, 1),
             constants.FLOAT_MAT3: (float, self.gl.uniformMatrix3fv, 9, 1),
             constants.FLOAT_MAT4: (float, self.gl.uniformMatrix4fv, 16, 1),
+            # 2D Samplers
+            constants.SAMPLER_2D: (int, self.gl.uniform1i, 1, 1),
+            constants.INT_SAMPLER_2D: (int, self.gl.uniform1i, 1, 1),
+            constants.UNSIGNED_INT_SAMPLER_2D: (int, self.gl.uniform1i, 1, 1),
+            # Array
+            constants.SAMPLER_2D_ARRAY: (
+                int,
+                self.gl.uniform1iv,
+                self.gl.uniform1iv,
+                1,
+                1,
+            ),
         }
 
     def clear(self, color: Tuple[float, float, float, float]):
@@ -145,6 +158,42 @@ class Context:
 
     def buffer(self, *, data: Optional[BufferProtocol] = None, usage: str = "static"):
         return Buffer(self, data, usage=usage)
+
+    def framebuffer(
+        self,
+        *,
+        color_attachments: Optional[Union[Texture, List[Texture]]] = None,
+        depth_attachment: Optional[Texture] = None,
+    ) -> Framebuffer:
+        return Framebuffer(
+            self, color_attachments=color_attachments, depth_attachment=depth_attachment
+        )
+
+    def texture(
+        self,
+        size: Tuple[int, int],
+        *,
+        components: int = 4,
+        dtype: str = "f1",
+        data: Optional[BufferProtocol] = None,
+        wrap_x: Optional[int] = None,
+        wrap_y: Optional[int] = None,
+        filter: Optional[Tuple[int, int]] = None,
+    ) -> Texture:
+        return Texture(
+            self,
+            size,
+            components=components,
+            data=data,
+            dtype=dtype,
+            wrap_x=wrap_x,
+            wrap_y=wrap_y,
+        )
+
+    def depth_texture(
+        self, size: Tuple[int, int], *, data: Optional[BufferProtocol] = None
+    ) -> Texture:
+        return Texture(self, size, data=data, depth=True)
 
     def geometry(
         self,
@@ -232,6 +281,7 @@ class Limits:
             constants.MAX_VERTEX_UNIFORM_BLOCKS
         )
         self.MAX_TEXTURE_IMAGE_UNITS = self.get_param(constants.MAX_TEXTURE_IMAGE_UNITS)
+        print(self.MAX_TEXTURE_IMAGE_UNITS)
         self.MAX_TEXTURE_MAX_ANISOTROPY = self.get_param(
             constants.MAX_TEXTURE_MAX_ANISOTROPY_EXT
         )

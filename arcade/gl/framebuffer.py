@@ -1,7 +1,9 @@
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from arcade.gl import constants
+
+from .texture import Texture
 
 if TYPE_CHECKING:
     from arcade.gl import Context
@@ -47,9 +49,10 @@ class Framebuffer:
                 constants.DEPTH_ATTACHMENT,
                 self._depth_attachment._target,
                 self._depth_attachment.glo,
+                0,
             )
 
-        self._check_completeness()
+        self._check_completeness(self._ctx)
 
         self._draw_buffers = [
             constants.COLOR_ATTACHMENT0 + i
@@ -57,6 +60,27 @@ class Framebuffer:
         ]
 
         self._ctx.active_framebuffer.use(force=True)
+
+    def _detect_size(self) -> Tuple[int, int]:
+        expected_size = (
+            self._color_attachments[0]
+            if self._color_attachments
+            else self._depth_attachment
+        ).size
+        for layer in [*self._color_attachments, self._depth_attachment]:
+            if layer and layer.size != expected_size:
+                raise ValueError(
+                    "All framebuffer attachments should have the same size"
+                )
+        return expected_size
+
+    @property
+    def color_attachments(self) -> List[Texture]:
+        return self._color_attachments
+
+    @property
+    def depth_attachment(self) -> Texture:
+        return self._depth_attachment
 
     @property
     def glo(self):
@@ -195,8 +219,7 @@ class DefaultFrameBuffer(Framebuffer):
         self._depth_attachment = None
         self._depth_mask = True
 
-        self._glo = self._ctx.gl.getParameter(constants.DRAW_FRAMEBUFFER_BINDING)
-        print(self._glo)
+        self._glo = None
 
         self._draw_buffers = None
         x, y, width, height = self._ctx.gl.getParameter(constants.SCISSOR_BOX)
